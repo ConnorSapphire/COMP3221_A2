@@ -1,6 +1,7 @@
 import sys
 import socket
 import threading
+import json
 
 import COMP3221_Messages as messages
 
@@ -11,8 +12,10 @@ class Server:
         self.port = port
         self.subsamp = subsamp
         self.clients = {}
+        self.listener_threads = []
+        self.stop_event = threading.Event()
 
-    def connect(self):
+    def start(self):
         try:
             with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as server_socket:
                 server_socket.bind((HOST, self.port))
@@ -23,30 +26,43 @@ class Server:
                 while len(self.clients) < 5:
                     conn, addr = server_socket.accept()
                     print(f"Got connection from {addr}")
-                    client_handler_thread = threading.Thread(target=self.handle_client, args=(conn, ))
-                    client_handler_thread.start()
-                    self.clients[addr] = conn
-                print("All clients connected")
+                    listener_thread = threading.Thread(target=self.listen_to_client, args=(conn, ))
+                    self.listener_threads.append(listener_thread)
+                    listener_thread.start()
+
+                print("Clients are connected")
         except:
-            print("Server error connecting to socket")
+            print("Can't connect to listener socket")
 
-    def handle_client(self, conn):
+    def stop(self):
+        try:
+            self.stop_event.set()
+            for thread in self.listener_threads:
+                thread.join()
+        except:
+            pass
+
+    def listen_to_client(self, conn):  # Listen on port 6000
         with conn:
-            while True:
-                data = conn.recv(1024)
-                if not data:
-                    print("No data received")
+            while not self.stop_event.is_set():
+                try:
+                    message = conn.recv(1024)
+                    if not message:
+                        print(f"Client disconnected")
+                        break
+                    message = json.loads(message.decode("utf-8"))
+
+                    if message['content'] == "CONNECTION ESTABLISHED":
+                        print(f"== Handshake: handle {message['client_id']} connection ==")
+                        pass
+                    else:
+                        print(f"Message from {message['client_id']} on port {message['port']}: {message['content']}")
+                except:
+                    print(f"Error listening to client")
                     break
-                print("Got data")
 
 
-def main(port, subsamp):
-    server = Server(port, subsamp)
-    server.connect()
-
-
-print("Server")
-if __name__ == "__main__":
-    port = int(sys.argv[1])
-    subsamp = int(sys.argv[2])
-    main(port, subsamp)
+port = int(sys.argv[1])
+subsamp = int(sys.argv[2])
+server = Server(port, subsamp)
+server.start()
