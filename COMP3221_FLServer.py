@@ -51,12 +51,18 @@ class Server:
                         print(f"Client disconnected")
                         break
                     message = json.loads(message.decode("utf-8"))
+                    client_id = message["client_id"]
+                    client_port = message["port"]
+                    content = message["content"]
 
                     if message['content'] == "CONNECTION ESTABLISHED":
-                        print(f"== Handshake: handle {message['client_id']} connection ==")
-                        pass
+                        print(f"== Handshake: handle {client_id} connection ==")
+                        self.clients[client_id] = {
+                            "port": client_port
+                        }
+                        print(self.clients)
                     else:
-                        print(f"Message from {message['client_id']} on port {message['port']}: {message['content']}")
+                        print(f"Message from {client_id} on port {client_port}: {content}")
                 except:
                     print(f"Error listening to client")
                     break
