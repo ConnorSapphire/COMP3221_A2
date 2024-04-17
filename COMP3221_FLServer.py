@@ -48,7 +48,8 @@ class Server:
                 try:
                     message = conn.recv(1024)
                     if not message:
-                        print(f"Client disconnected")
+                        # TODO: This doesn't mean a client disconnected???
+                        # print(f"Client disconnected")
                         break
                     message = json.loads(message.decode("utf-8"))
                     client_id = message["client_id"]
@@ -66,9 +67,12 @@ class Server:
                 except:
                     print(f"Error listening to client")
                     break
+                
+    def update(self):
+        pass
 
-
-port = int(sys.argv[1])
-subsamp = int(sys.argv[2])
-server = Server(port, subsamp)
-server.start()
+if __name__ == "__main__":
+    port = int(sys.argv[1])
+    subsamp = int(sys.argv[2])
+    server = Server(port, subsamp)
+    server.start()
