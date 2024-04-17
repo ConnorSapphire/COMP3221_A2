@@ -2,6 +2,8 @@ import sys
 import socket
 import threading
 import json
+import torch
+import torch.nn as nn
 
 import COMP3221_Messages as messages
 
@@ -14,6 +16,8 @@ class Server:
         self.clients = {}
         self.listener_threads = []
         self.stop_event = threading.Event()
+        self.T = 10
+        self.model = nn.Linear(8,1)
 
     def start(self):
         try:

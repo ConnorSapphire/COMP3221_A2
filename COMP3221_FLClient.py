@@ -2,6 +2,12 @@ import sys
 import socket
 import threading
 import json
+import pandas as pd
+import numpy as np
+import torch
+import torch.nn as nn
+import torch.optim as optim
+import matplotlib.pyplot as plt
 
 HOST = "localhost"
 SERVER_PORT = 6000
@@ -12,8 +18,11 @@ class Client:
         self.port = port
         self.opt_method = opt_method
         self.stop_event = threading.Event()
-        self.train_data = []
-        self.test_data = []
+        self.X_train = None
+        self.X_test = None
+        self.Y_train = None
+        self.Y_test = None
+        self.E = 10
 
     def start(self):
         print(f"I am client {self.client_id.strip("client")}")
@@ -59,40 +68,44 @@ class Client:
         except:
             print("Message failed")
     
+    def evaluate(self):
+        pass
+    
     def update(self):
+        if self.opt_method == 0:
+            self.gradient_descent()
+        else:
+            self.mini_batch()
+    
+    def gradient_descent(self):
+        pass
+    
+    def mini_batch(self):
         pass
 
     def retrieve_data(self):
-        try:
-            # retrieve training data
-            data_file = open(f"./FLData/calhousing_train_{self.client_id}.csv")
-            line = data_file.readline() 
-            while line != "": # Must skip first line
-                line = data_file.readline()
-                if line == "":
-                    break
-                sections = line.strip().split(",")
-                self.train_data.append({"MedInc": float(sections[0]), "HouseAge": float(sections[1]), \
-                    "AveRooms": float(sections[2]), "AveBedrms": float(sections[3]), \
-                    "Population": float(sections[4]), "AveOccup": float(sections[5]), \
-                    "Latitude": float(sections[6]), "Longitude": float(sections[7]), \
-                    "MedHouseVal": float(sections[8])})
-            
-            # retrieve testing data
-            data_file = open(f"./FLData/calhousing_test_{self.client_id}.csv")
-            line = data_file.readline() 
-            while line != "": # Must skip first line
-                line = data_file.readline()
-                if line == "":
-                    break
-                sections = line.strip().split(",")
-                self.test_data.append({"MedInc": float(sections[0]), "HouseAge": float(sections[1]), \
-                    "AveRooms": float(sections[2]), "AveBedrms": float(sections[3]), \
-                    "Population": float(sections[4]), "AveOccup": float(sections[5]), \
-                    "Latitude": float(sections[6]), "Longitude": float(sections[7]), \
-                    "MedHouseVal": float(sections[8])})
-        except:
-            print("Could not read data from file")
+        # retrieve training data
+        df = pd.read_csv(f"./FLData/calhousing_train_{self.client_id}.csv")
+        X_train = df.iloc[:, :-1].values
+        y_train = df.iloc[:, -1].values
+        self.X_train = torch.Tensor(X_train).type(torch.float32)
+        self.Y_train = torch.Tensor(y_train).type(torch.float32)
+        
+        
+        # x = [i[0] for i in self.X_train]
+        # plt.scatter(x, self.Y_train, label="Initial Data")
+        # plt.title("Pre Pytorch")
+        # plt.xlabel("X")
+        # plt.ylabel("y")
+        # plt.legend()
+        # plt.show()
+        
+        # retrieve testing data
+        df = pd.read_csv(f"./FLData/calhousing_test_{self.client_id}.csv")
+        X_test = df.iloc[:, :-1].values
+        y_test = df.iloc[:, -1].values
+        self.X_test = torch.Tensor(X_test).type(torch.float32)
+        self.Y_test = torch.Tensor(y_test).type(torch.float32)
                 
     
 if __name__ == "__main__":
