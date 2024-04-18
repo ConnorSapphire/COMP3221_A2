@@ -17,12 +17,9 @@ class Server:
         self.sender_threads = []
         self.stop_event = threading.Event()
         self.T = 10
-        self.w = torch.randn(1,8,requires_grad=True)
-        self.b = torch.randn(1,requires_grad=True)
-        print(self.w, self.b)
-    
-    def model(self, x):
-        return x @ self.w.t() + self.b
+        # self.w = torch.randn(8, 1,requires_grad=True)
+        # self.b = torch.randn(1,requires_grad=True)
+        self.model = nn.Linear(8, 1)
 
     def start(self):
         try:
@@ -66,12 +63,13 @@ class Server:
                         break
                     message = json.loads(message.decode("utf-8"))
                     client_id = message["client_id"]
+                    client_data_size = message["data_size"]
                     client_port = message["port"]
                     content = message["content"]
 
                     if message['content'] == "CONNECTION ESTABLISHED":
                         print(f"== Handshake: handle {client_id} connection ==")
-                        self.clients[client_id] = client_port
+                        self.clients[client_id] = {"port": client_port, "data_size": client_data_size}
                         print(self.clients)
                     else:
                         print(f"Message from {client_id} on port {client_port}: {content}")
@@ -81,14 +79,13 @@ class Server:
     
     def send(self):
         message = {
-            "w":self.w,
-            "b":self.b
+            "model": self.model
         }
         try:
             with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as server_socket:
                 while not self.stop_event.is_set():
                     for client in self.clients:
-                        server_socket.connect((HOST, self.clients[client]))
+                        server_socket.connect((HOST, self.clients[client]["port"]))
                         server_socket.sendall(pickle.dumps(message))
                         print("Message sent")
         except Exception as e:
@@ -96,6 +93,21 @@ class Server:
             exit()
                 
     def update(self):
+        if self.subsamp == 0:
+            self.subsampled_update(self.clients)
+        else:
+            clients = self.random_clients(self.subsamp)
+            self.subsampled_update(self.clients)
+    
+    def subsampled_update(self, clients):
+        total_data = 0
+        for client in clients:
+            total_data += client["data_size"]
+        for client in clients:
+            # += (client["data_size"] / total_data) * client["model"] 
+            pass
+            
+    def random_clients(self, size):
         pass
 
 if __name__ == "__main__":

@@ -7,6 +7,7 @@ import pandas as pd
 import numpy as np
 import torch
 import torch.nn as nn
+import torch.nn.functional as F
 import torch.optim as optim
 import matplotlib.pyplot as plt
 
@@ -23,7 +24,11 @@ class Client:
         self.X_test = None
         self.Y_train = None
         self.Y_test = None
-        self.E = 10
+        self.model = None
+        self.opt = None
+        self.loss_fn = F.mse_loss
+        self.epochs = 100
+        self.learning_rate = 1e-10
 
     def start(self):
         print(f"I am client {self.client_id.strip("client")}")
@@ -49,15 +54,21 @@ class Client:
                 print(f"Client listening on port {self.port}")
 
                 conn, addr = client_socket.accept()
+                data = b""
                 with conn:
-                    data = conn.recv(1048)
+                    while True:
+                        packet = conn.recv(1048)
+                        if not packet:
+                            break
+                        data += packet
                     if data:
                         print("Client received data")
                 try:
-                    d = pickle.loads(data)
-                    print(d["w"])
-                    print(d["b"])
+                    model = pickle.loads(data)
+                    self.model = model["model"]
+                    self.opt = optim.SGD(self.model.parameters(), lr=self.learning_rate)
                     print("Received data")
+                    self.update()
                 except Exception as e:
                     print(f"Failed: {e}")
         except KeyboardInterrupt:
@@ -69,6 +80,7 @@ class Client:
         message = {
             "client_id": self.client_id,
             "port": self.port,
+            "data_size": list(self.X_train.size())[0],
             "content": message,
         }
 
@@ -83,7 +95,9 @@ class Client:
             print("Message failed")
     
     def evaluate(self):
-        pass
+        pred = self.model(self.X_test)
+        loss = self.loss_fn(pred, self.Y_test)
+        return loss
     
     def update(self):
         if self.opt_method == 0:
@@ -92,7 +106,12 @@ class Client:
             self.mini_batch()
     
     def gradient_descent(self):
-        pass
+        for e in range(self.epochs):
+            pred = self.model(self.X_train)
+            loss = self.loss_fn(pred, self.Y_train)
+            loss.backward()
+            self.opt.step()
+            self.opt.zero_grad()
     
     def mini_batch(self):
         pass
@@ -103,23 +122,14 @@ class Client:
         X_train = df.iloc[:, :-1].values
         y_train = df.iloc[:, -1].values
         self.X_train = torch.Tensor(X_train).type(torch.float32)
-        self.Y_train = torch.Tensor(y_train).type(torch.float32)
-        
-        
-        # x = [i[0] for i in self.X_train]
-        # plt.scatter(x, self.Y_train, label="Initial Data")
-        # plt.title("Pre Pytorch")
-        # plt.xlabel("X")
-        # plt.ylabel("y")
-        # plt.legend()
-        # plt.show()
+        self.Y_train = torch.Tensor(y_train).type(torch.float32).unsqueeze(1)
         
         # retrieve testing data
         df = pd.read_csv(f"./FLData/calhousing_test_{self.client_id}.csv")
         X_test = df.iloc[:, :-1].values
         y_test = df.iloc[:, -1].values
         self.X_test = torch.Tensor(X_test).type(torch.float32)
-        self.Y_test = torch.Tensor(y_test).type(torch.float32)
+        self.Y_test = torch.Tensor(y_test).type(torch.float32).unsqueeze(1)
                 
     
 if __name__ == "__main__":
