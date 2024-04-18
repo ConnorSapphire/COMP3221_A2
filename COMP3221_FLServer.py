@@ -4,8 +4,7 @@ import threading
 import json
 import torch
 import torch.nn as nn
-
-import COMP3221_Messages as messages
+import pickle
 
 HOST = "localhost"
 
@@ -15,9 +14,15 @@ class Server:
         self.subsamp = subsamp
         self.clients = {}
         self.listener_threads = []
+        self.sender_threads = []
         self.stop_event = threading.Event()
         self.T = 10
-        self.model = nn.Linear(8,1)
+        self.w = torch.randn(1,8,requires_grad=True)
+        self.b = torch.randn(1,requires_grad=True)
+        print(self.w, self.b)
+    
+    def model(self, x):
+        return x @ self.w.t() + self.b
 
     def start(self):
         try:
@@ -33,10 +38,14 @@ class Server:
                     listener_thread = threading.Thread(target=self.listen_to_client, args=(conn, ))
                     self.listener_threads.append(listener_thread)
                     listener_thread.start()
+                    sender_thread = threading.Thread(target=self.send)
+                    self.sender_threads.append(sender_thread)
+                    sender_thread.start()
+                    
 
                 print("Clients are connected")
-        except:
-            print("Can't connect to listener socket")
+        except Exception as e:
+            print(f"Can't connect to listener socket: {e}")
 
     def stop(self):
         try:
@@ -62,15 +71,29 @@ class Server:
 
                     if message['content'] == "CONNECTION ESTABLISHED":
                         print(f"== Handshake: handle {client_id} connection ==")
-                        self.clients[client_id] = {
-                            "port": client_port
-                        }
+                        self.clients[client_id] = client_port
                         print(self.clients)
                     else:
                         print(f"Message from {client_id} on port {client_port}: {content}")
                 except:
                     print(f"Error listening to client")
                     break
+    
+    def send(self):
+        message = {
+            "w":self.w,
+            "b":self.b
+        }
+        try:
+            with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as server_socket:
+                while not self.stop_event.is_set():
+                    for client in self.clients:
+                        server_socket.connect((HOST, self.clients[client]))
+                        server_socket.sendall(pickle.dumps(message))
+                        print("Message sent")
+        except Exception as e:
+            print(f"Error sending to client: {e}")
+            exit()
                 
     def update(self):
         pass

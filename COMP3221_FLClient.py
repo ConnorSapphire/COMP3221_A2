@@ -2,6 +2,7 @@ import sys
 import socket
 import threading
 import json
+import pickle
 import pandas as pd
 import numpy as np
 import torch
@@ -35,7 +36,9 @@ class Client:
         try:
             self.stop_event.set()
             self.listener_thread.join()
-        except:
+        except KeyboardInterrupt:
+            exit()
+        except Exception:
             pass
 
     def listen_to_server(self):  # Listen on port 6001, 6002, etc.
@@ -47,11 +50,20 @@ class Client:
 
                 conn, addr = client_socket.accept()
                 with conn:
-                    data = conn.recv(1024)
+                    data = conn.recv(1048)
                     if data:
                         print("Client received data")
-        except:
-            print("Can't connect to the listener socket")
+                try:
+                    d = pickle.loads(data)
+                    print(d["w"])
+                    print(d["b"])
+                    print("Received data")
+                except Exception as e:
+                    print(f"Failed: {e}")
+        except KeyboardInterrupt:
+            exit()
+        except Exception as e:
+            print(f"Can't connect to the listener socket: {e}")
 
     def send(self, message):
         message = {
@@ -65,7 +77,9 @@ class Client:
                 server_socket.connect((HOST, SERVER_PORT))
                 server_socket.sendall(json.dumps(message).encode())
                 print("Message sent")
-        except:
+        except KeyboardInterrupt:
+            exit()
+        except Exception:
             print("Message failed")
     
     def evaluate(self):
