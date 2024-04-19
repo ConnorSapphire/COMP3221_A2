@@ -31,6 +31,7 @@ class Client:
         self.epochs = 100
         self.learning_rate = 1e-7
         self.confirmed = False
+        self.iteration = 0
         
     def start(self):
         print(f"I am client {self.client_id.strip("client")}")
@@ -72,6 +73,8 @@ class Client:
                                         model = pickle.loads(data)
                                         self.model = model["model"]
                                         self.opt = optim.SGD(self.model.parameters(), lr=self.learning_rate)
+                                        self.iteration = model["iteration"]
+                                        self.confirmed = False
                                         print("Received model from server")
                                         update = threading.Thread(target=self.update)
                                         update.start()
@@ -112,6 +115,7 @@ class Client:
         sent = False
         message = {
             "client_id": self.client_id,
+            "iteration": self.iteration,
             "model": self.model,
         }
         while not sent:

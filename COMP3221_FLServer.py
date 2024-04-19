@@ -18,6 +18,7 @@ class Server:
         self.client_stack = {}
         self.listener_threads = []
         self.stop_event = threading.Event()
+        self.iteration = 0
         self.T = 100
         self.model = nn.Linear(8, 1)
         self.wait = 5
@@ -99,7 +100,8 @@ class Server:
     
     def send_model(self) -> None:
         message = {
-            "model": self.model
+            "model": self.model,
+            "iteration": self.iteration,
         }
         for client in self.clients:
             try:
@@ -127,6 +129,7 @@ class Server:
         print(f"Waiting for {self.wait} seconds for all clients to join")
         time.sleep(self.wait)
         for t in range(self.T):
+            self.iteration = t
             self.clients = self.client_stack.copy()
             print(f"Global iteration {t + 1}:")
             sender_thread = threading.Thread(target=self.send_model)
