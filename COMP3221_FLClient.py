@@ -51,7 +51,8 @@ class Client:
         self.send_message(f"CONNECTION ESTABLISHED")
 
     def stop(self) -> None:
-        """Stop the listener thread.
+        """
+        Stop the listener thread.
         """
         try:
             self.stop_event.set()

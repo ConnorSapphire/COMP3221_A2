@@ -24,6 +24,10 @@ class Server:
         self.wait = 5
 
     def start(self):
+        """
+        Start all processes for server instance. Including creating the algorithm thread, and 
+        creating the listening socket thread.
+        """
         federated_thread = threading.Thread(target=self.federate, daemon=True)
         federated_thread.start()
         listener_thread = threading.Thread(target=self.listen_to_client)
@@ -31,6 +35,9 @@ class Server:
         listener_thread.start()
 
     def stop(self):
+        """
+        Stop the listener threads.
+        """
         try:
             self.stop_event.set()
             for thread in self.listener_threads:
@@ -39,19 +46,22 @@ class Server:
             pass
 
     def listen_to_client(self):  # Listen on port 6000
+        """
+        Listen for messages from the clients and interpret them. Messages will be sent to
+        the server instances port.
+        """
         print(f"Server listening on port {self.port}")
         while not self.stop_event.is_set():
             try:
                 with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as server_socket:
                     server_socket.bind((HOST, self.port))
                     server_socket.listen(5)
-                
-                    # Connect all clients
                     conn, addr = server_socket.accept()
                     with conn:
                         try:
                             message = conn.recv(1)
-                            if message == b"0":
+                            # check if message is a string
+                            if message == b"0": # message is a string
                                 message = conn.recv(1024)
                                 while True:
                                     packet = conn.recv(1024)
@@ -63,7 +73,6 @@ class Server:
                                 client_data_size = message["data_size"]
                                 client_port = message["port"]
                                 content = message["content"]
-
                                 if message['content'] == "CONNECTION ESTABLISHED":
                                     print(f"== Handshake: handle {client_id} connection ==")
                                     if len(self.client_stack) < 5:
@@ -72,7 +81,8 @@ class Server:
                                         print("== Client ignored : Too many clients ==")
                                 else:
                                     print(f"\tMessage from {client_id} on port {client_port}: {content}")
-                            elif message == b"1":
+                            # check if message is a model
+                            elif message == b"1": # message is a model
                                 data = b""
                                 while True:
                                     packet = conn.recv(1048)
@@ -85,7 +95,7 @@ class Server:
                                         client_id = model["client_id"]
                                         self.clients[client_id]["model"] = model["model"]
                                         self.send_confirmation(client_id)
-                                        print(f"\tServer received local model data from {client_id}")
+                                        print(f"Getting local model from client {client_id.strip("client")}")
                                     except Exception as e:
                                         print(f"Failed: {e}")
                                         break
@@ -99,15 +109,20 @@ class Server:
                 break 
     
     def send_model(self) -> None:
+        """
+        Send global model to all connected clients in the current iteration.
+        """
+        # define message
         message = {
             "model": self.model,
             "iteration": self.iteration,
         }
+        # send messages
         for client in self.clients:
             try:
                 with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as server_socket:
-                    print(f"\tSending model to {client} at {self.clients[client]["port"]}")
                     server_socket.connect((HOST, self.clients[client]["port"]))
+                    # send binary 0 to inform client to expect a model
                     server_socket.sendall(b"0")
                     server_socket.sendall(pickle.dumps(message))
                     server_socket.close()
@@ -116,9 +131,16 @@ class Server:
                 exit()
     
     def send_confirmation(self, client: str) -> None:
+        """
+        Send a confirmation message to a client to confirm a model has been received.
+
+        Args:
+            client (str): client id of the client to be contacted.
+        """
         try:
             with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as server_socket:
                 server_socket.connect((HOST, self.clients[client]["port"]))
+                # binary 1 represents a confirmation message
                 server_socket.sendall(b"1")
                 server_socket.close()
         except Exception as e:
@@ -126,20 +148,28 @@ class Server:
             exit()
     
     def federate(self) -> None:
+        """
+        Perform all the steps of the federated learning algorithm.
+        """
         print(f"Waiting for {self.wait} seconds for all clients to join")
         time.sleep(self.wait)
         for t in range(self.T):
             self.iteration = t
             self.clients = self.client_stack.copy()
-            print(f"\nGlobal iteration {t + 1}:")
+            print("Broadcasting new global model")
             sender_thread = threading.Thread(target=self.send_model)
             sender_thread.start()
+            print(f"\nGlobal Iteration {t + 1}:")
             while not self.check():
                 time.sleep(0.25)
             self.update()        
                 
     def update(self) -> None:
-        print("\tUpdating global model")
+        """
+        Performs all steps to update the global model based on the local models provided
+        and using the subsampling defined by self.subsamp where 0 means no subsampling.
+        """
+        print("Aggregating new global model")
         if self.subsamp == 0:
             self.subsampled_update(self.clients)
         else:
@@ -149,35 +179,52 @@ class Server:
             self.clients[client].pop("model")
     
     def subsampled_update(self, clients: dict) -> None:
-        print("\tCalculating new global model")
+        """
+        Updates the global model using the local models from the client dictionary
+        provided.
+
+        Args:
+            clients (dict): clients to be included in creating the new global model.
+        """
+        # calculate total data in all clients databases
         total_data = 0
         for client in clients:
             total_data += clients[client]["data_size"]
-        
+        # create empty weight and bias Tensors to be added to
         weight = None
         bias = None
         for client in clients:
             weight = torch.zeros_like(clients[client]["model"].weight, requires_grad=True)    
             bias = torch.zeros_like(clients[client]["model"].bias, requires_grad=True)
             break
-        
+        # calculate the new weight and bias by adding each client model averaged by the size of its database
         for client in clients:
             with torch.no_grad():
                 weight += (clients[client]["data_size"] / total_data) * clients[client]["model"].weight 
                 bias += (clients[client]["data_size"] / total_data) * clients[client]["model"].bias 
-                
+        # update the global model
         with torch.no_grad():
             self.model.weight.copy_(weight)
             self.model.bias.copy_(bias)
-        print("\tGlobal model updated")
             
     def random_clients(self, size: int) -> dict:
-        print(f"\tRandomly subsampling {size} client models")
+        """
+        Randomly selects clients and puts them into a dictionary for use in the subsampled model
+        update method.
+
+        Args:
+            size (int): amount of clients needed by the subsampling
+
+        Returns:
+            dict: random dictionary of clients of the given size
+        """
         clients = dict()
         fake = self.clients.copy()
+        # check if size provided is larger than available clients
         if size >= len(self.clients.keys()):
             print(f"Only {len(self.clients.keys())} are available. No subsampling is being performed.")
             self.subsampled_update(self.clients)
+        # add clients to dictionary
         while len(clients) < size:
             client = random.choice(list(fake.keys()))
             client_details = fake.pop(client)
@@ -185,6 +232,13 @@ class Server:
         return clients
 
     def check(self) -> bool:
+        """
+        Check that all clients included in the global iteration have returned
+        a local model.
+
+        Returns:
+            bool: True if all client have returned a local model.
+        """
         if len(self.clients) == 0:
             return False
         for client in self.clients:
