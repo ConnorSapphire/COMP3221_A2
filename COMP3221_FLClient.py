@@ -28,7 +28,7 @@ class Client:
         self.model = None
         self.opt = None
         self.loss_fn = F.mse_loss
-        self.epochs = 100
+        self.epochs = 300
         self.learning_rate = 1e-7
         self.confirmed = False
         self.iteration = 0

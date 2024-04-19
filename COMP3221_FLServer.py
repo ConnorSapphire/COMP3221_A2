@@ -152,10 +152,10 @@ class Server:
         Perform all the steps of the federated learning algorithm.
         """
         print(f"Waiting for {self.wait} seconds for all clients to join")
-        time.sleep(self.wait)
+        time.sleep(self.wait) # wait for clients to join
         for t in range(self.T):
             self.iteration = t
-            self.clients = self.client_stack.copy()
+            self.clients = self.client_stack.copy() # update client list
             print("Broadcasting new global model")
             sender_thread = threading.Thread(target=self.send_model)
             sender_thread.start()
