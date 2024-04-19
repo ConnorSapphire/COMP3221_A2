@@ -23,26 +23,11 @@ class Server:
         self.wait = 5
 
     def start(self):
-        try:
-            with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as server_socket:
-                server_socket.bind((HOST, self.port))
-                server_socket.listen()
-                print(f"Server listening on port {self.port}")
-
-                federated_thread = threading.Thread(target=self.federate, daemon=True)
-                federated_thread.start()
-                
-                # Connect all clients
-                while len(self.clients) < 5:
-                    conn, addr = server_socket.accept()
-                    print(f"Got connection from {addr}")
-                    listener_thread = threading.Thread(target=self.listen_to_client, args=(conn, ))
-                    self.listener_threads.append(listener_thread)
-                    listener_thread.start()
-
-                print("Clients are connected")
-        except Exception as e:
-            print(f"Can't connect to listener socket: {e}")
+        federated_thread = threading.Thread(target=self.federate, daemon=True)
+        federated_thread.start()
+        listener_thread = threading.Thread(target=self.listen_to_client)
+        self.listener_threads.append(listener_thread)
+        listener_thread.start()
 
     def stop(self):
         try:
@@ -52,52 +37,93 @@ class Server:
         except:
             pass
 
-    def listen_to_client(self, conn):  # Listen on port 6000
-        with conn:
-            while not self.stop_event.is_set():
-                try:
-                    message = conn.recv(1)
-                    if message == b"0":
-                        message = conn.recv(1024)
-                        while True:
-                            packet = conn.recv(1024)
-                            if not packet:
-                                break
-                            message += packet
-                        message = json.loads(message.decode("utf-8"))
-                        client_id = message["client_id"]
-                        client_data_size = message["data_size"]
-                        client_port = message["port"]
-                        content = message["content"]
-
-                        if message['content'] == "CONNECTION ESTABLISHED":
-                            print(f"== Handshake: handle {client_id} connection ==")
-                            if len(self.client_stack) < 5:
-                                self.client_stack[client_id] = {"port": client_port, "data_size": client_data_size}
-                            else:
-                                print("== Client ignored : Too many clients ==")
-                        else:
-                            print(f"Message from {client_id} on port {client_port}: {content}")
-                    elif message == b"1":
-                        data = b""
-                        while True:
-                            packet = conn.recv(1048)
-                            if not packet:
-                                break
-                            data += packet
-                        if data:
-                            print("Server received model data")
+    def listen_to_client(self):  # Listen on port 6000
+        print(f"Server listening on port {self.port}")
+        while not self.stop_event.is_set():
+            try:
+                with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as server_socket:
+                    server_socket.bind((HOST, self.port))
+                    server_socket.listen(5)
+                
+                    # Connect all clients
+                    conn, addr = server_socket.accept()
+                    with conn:
                         try:
-                            model = pickle.loads(data)
-                            client_id = model["client_id"]
-                            self.clients[client_id]["model"] = model["model"]
+                            message = conn.recv(1)
+                            if message == b"0":
+                                message = conn.recv(1024)
+                                while True:
+                                    packet = conn.recv(1024)
+                                    if not packet:
+                                        break
+                                    message += packet
+                                message = json.loads(message.decode("utf-8"))
+                                client_id = message["client_id"]
+                                client_data_size = message["data_size"]
+                                client_port = message["port"]
+                                content = message["content"]
+
+                                if message['content'] == "CONNECTION ESTABLISHED":
+                                    print(f"== Handshake: handle {client_id} connection ==")
+                                    if len(self.client_stack) < 5:
+                                        self.client_stack[client_id] = {"port": client_port, "data_size": client_data_size}
+                                    else:
+                                        print("== Client ignored : Too many clients ==")
+                                else:
+                                    print(f"\tMessage from {client_id} on port {client_port}: {content}")
+                            elif message == b"1":
+                                data = b""
+                                while True:
+                                    packet = conn.recv(1048)
+                                    if not packet:
+                                        break
+                                    data += packet
+                                if data:
+                                    try:
+                                        model = pickle.loads(data)
+                                        client_id = model["client_id"]
+                                        self.clients[client_id]["model"] = model["model"]
+                                        self.send_confirmation(client_id)
+                                        print(f"\tServer received local model data from {client_id}")
+                                    except Exception as e:
+                                        print(f"Failed: {e}")
+                                        break
                         except Exception as e:
-                            print(f"Failed: {e}")
-                except Exception as e:
-                    print(f"Error listening to client: {e}")
-                    break
+                            print(f"Error listening to client: {e}")
+                            break
+                    # print(f"Got connection from {addr}")
+                    server_socket.close()
+            except Exception as e:
+                print(f"Can't connect to listener socket: {e}")
+                break 
     
-    def federate(self):
+    def send_model(self) -> None:
+        message = {
+            "model": self.model
+        }
+        for client in self.clients:
+            try:
+                with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as server_socket:
+                    print(f"\tSending model to {client} at {self.clients[client]["port"]}")
+                    server_socket.connect((HOST, self.clients[client]["port"]))
+                    server_socket.sendall(b"0")
+                    server_socket.sendall(pickle.dumps(message))
+                    server_socket.close()
+            except Exception as e:
+                print(f"Error sending to client: {e}")
+                exit()
+    
+    def send_confirmation(self, client: str) -> None:
+        try:
+            with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as server_socket:
+                server_socket.connect((HOST, self.clients[client]["port"]))
+                server_socket.sendall(b"1")
+                server_socket.close()
+        except Exception as e:
+            print(f"Error sending confirmation to client: {e}")
+            exit()
+    
+    def federate(self) -> None:
         print(f"Waiting for {self.wait} seconds for all clients to join")
         time.sleep(self.wait)
         for t in range(self.T):
@@ -108,21 +134,6 @@ class Server:
             while not self.check():
                 time.sleep(0.25)
             self.update()        
-    
-    def send_model(self) -> None:
-        message = {
-            "model": self.model
-        }
-        try:
-            with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as server_socket:
-                for client in self.clients:
-                    print(f"\tSending model to {client} at {self.clients[client]["port"]}")
-                    server_socket.connect((HOST, self.clients[client]["port"]))
-                    server_socket.sendall(pickle.dumps(message))
-                    server_socket.close()
-        except Exception as e:
-            print(f"Error sending to client: {e}")
-            exit()
                 
     def update(self) -> None:
         print("\tUpdating global model")
@@ -171,6 +182,8 @@ class Server:
         return clients
 
     def check(self) -> bool:
+        if len(self.clients) == 0:
+            return False
         for client in self.clients:
             if not "model" in self.clients[client]:
                 return False

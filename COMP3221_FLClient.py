@@ -10,6 +10,7 @@ import torch.nn as nn
 import torch.nn.functional as F
 import torch.optim as optim
 import matplotlib.pyplot as plt
+import time
 
 HOST = "localhost"
 SERVER_PORT = 6000
@@ -29,7 +30,8 @@ class Client:
         self.loss_fn = F.mse_loss
         self.epochs = 100
         self.learning_rate = 1e-10
-
+        self.confirmed = False
+        
     def start(self):
         print(f"I am client {self.client_id.strip("client")}")
         self.retrieve_data()
@@ -55,23 +57,28 @@ class Client:
                     print(f"Client listening on port {self.port}")
 
                     conn, addr = client_socket.accept()
-                    data = b""
                     with conn:
-                        while True:
-                            packet = conn.recv(1048)
-                            if not packet:
-                                break
-                            data += packet
-                        if data:
-                            print("Client received data")
-                    try:
-                        model = pickle.loads(data)
-                        self.model = model["model"]
-                        self.opt = optim.SGD(self.model.parameters(), lr=self.learning_rate)
-                        print("Received data")
-                        self.update()
-                    except Exception as e:
-                        print(f"Failed: {e}")
+                        data = conn.recv(1)
+                        if data == b"0":
+                            data = b""
+                            while True:
+                                packet = conn.recv(1048)
+                                if not packet:
+                                    break
+                                data += packet
+                            if data:
+                                try:
+                                    model = pickle.loads(data)
+                                    self.model = model["model"]
+                                    self.opt = optim.SGD(self.model.parameters(), lr=self.learning_rate)
+                                    print("Received model from server")
+                                    self.update()
+                                except Exception as e:
+                                    print(f"Failed: {e}")
+                            
+                        elif data == b"1":
+                            self.confirmed = True
+                            print("----SENT-----")
                     client_socket.close()
         except KeyboardInterrupt:
             exit()
@@ -91,7 +98,7 @@ class Client:
                 client_socket.connect((HOST, SERVER_PORT))
                 client_socket.sendall(b"0")
                 client_socket.sendall(json.dumps(message).encode())
-                print("Message sent")
+                print(f"Message sent to server: {message["content"]}")
                 client_socket.close()
         except KeyboardInterrupt:
             exit()
@@ -99,22 +106,26 @@ class Client:
             print(f"Message failed: {e}")
             
     def send_model(self):
+        sent = False
         message = {
             "client_id": self.client_id,
             "model": self.model,
         }
-
-        try:
-            with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as client_socket:
-                client_socket.connect((HOST, SERVER_PORT))
-                client_socket.sendall(b"1")
-                client_socket.sendall(pickle.dumps(message))
-                print("Model sent")
-                client_socket.close()
-        except KeyboardInterrupt:
-            exit()
-        except Exception:
-            print("Model failed to send")
+        while not sent:
+            try:
+                with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as client_socket:
+                    client_socket.connect((HOST, SERVER_PORT))
+                    client_socket.sendall(b"1")
+                    client_socket.sendall(pickle.dumps(message))
+                    time.sleep(0.1)
+                    sent = self.confirmed
+                    self.confirmed = False
+                    client_socket.close()
+            except KeyboardInterrupt:
+                exit()
+            except Exception:
+                print("Model failed to send")
+        print("Model sent to server")
     
     def evaluate(self):
         pred = self.model(self.X_test)
@@ -122,6 +133,7 @@ class Client:
         return loss
     
     def update(self):
+        print(f"Updating local model:")
         if self.opt_method == 0:
             self.gradient_descent()
         else:
@@ -129,12 +141,16 @@ class Client:
         self.send_model()
     
     def gradient_descent(self):
+        output = ""
         for e in range(self.epochs):
+            output += f"\t\tLocal update {e + 1}: "
             pred = self.model(self.X_train)
             loss = self.loss_fn(pred, self.Y_train)
             loss.backward()
+            output += "Loss: {loss}"
             self.opt.step()
             self.opt.zero_grad()
+        print(output)
     
     def mini_batch(self):
         pass
@@ -153,7 +169,7 @@ class Client:
         y_test = df.iloc[:, -1].values
         self.X_test = torch.Tensor(X_test).type(torch.float32)
         self.Y_test = torch.Tensor(y_test).type(torch.float32).unsqueeze(1)
-                
+        print("Data retrieved from files")
     
 if __name__ == "__main__":
     id = sys.argv[1]
