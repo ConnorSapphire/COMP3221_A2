@@ -35,7 +35,7 @@ class Client:
         self.retrieve_data()
         self.listener_thread = threading.Thread(target=self.listen_to_server)
         self.listener_thread.start()
-        self.send(f"CONNECTION ESTABLISHED")
+        self.send_message(f"CONNECTION ESTABLISHED")
 
     def stop(self):
         try:
@@ -48,35 +48,37 @@ class Client:
 
     def listen_to_server(self):  # Listen on port 6001, 6002, etc.
         try:
-            with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as client_socket:
-                client_socket.bind((HOST, self.port))
-                client_socket.listen()
-                print(f"Client listening on port {self.port}")
+            while True:
+                with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as client_socket:
+                    client_socket.bind((HOST, self.port))
+                    client_socket.listen()
+                    print(f"Client listening on port {self.port}")
 
-                conn, addr = client_socket.accept()
-                data = b""
-                with conn:
-                    while True:
-                        packet = conn.recv(1048)
-                        if not packet:
-                            break
-                        data += packet
-                    if data:
-                        print("Client received data")
-                try:
-                    model = pickle.loads(data)
-                    self.model = model["model"]
-                    self.opt = optim.SGD(self.model.parameters(), lr=self.learning_rate)
-                    print("Received data")
-                    self.update()
-                except Exception as e:
-                    print(f"Failed: {e}")
+                    conn, addr = client_socket.accept()
+                    data = b""
+                    with conn:
+                        while True:
+                            packet = conn.recv(1048)
+                            if not packet:
+                                break
+                            data += packet
+                        if data:
+                            print("Client received data")
+                    try:
+                        model = pickle.loads(data)
+                        self.model = model["model"]
+                        self.opt = optim.SGD(self.model.parameters(), lr=self.learning_rate)
+                        print("Received data")
+                        self.update()
+                    except Exception as e:
+                        print(f"Failed: {e}")
+                    client_socket.close()
         except KeyboardInterrupt:
             exit()
         except Exception as e:
             print(f"Can't connect to the listener socket: {e}")
 
-    def send(self, message):
+    def send_message(self, message):
         message = {
             "client_id": self.client_id,
             "port": self.port,
@@ -85,14 +87,34 @@ class Client:
         }
 
         try:
-            with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as server_socket:
-                server_socket.connect((HOST, SERVER_PORT))
-                server_socket.sendall(json.dumps(message).encode())
+            with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as client_socket:
+                client_socket.connect((HOST, SERVER_PORT))
+                client_socket.sendall(b"0")
+                client_socket.sendall(json.dumps(message).encode())
                 print("Message sent")
+                client_socket.close()
+        except KeyboardInterrupt:
+            exit()
+        except Exception as e:
+            print(f"Message failed: {e}")
+            
+    def send_model(self):
+        message = {
+            "client_id": self.client_id,
+            "model": self.model,
+        }
+
+        try:
+            with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as client_socket:
+                client_socket.connect((HOST, SERVER_PORT))
+                client_socket.sendall(b"1")
+                client_socket.sendall(pickle.dumps(message))
+                print("Model sent")
+                client_socket.close()
         except KeyboardInterrupt:
             exit()
         except Exception:
-            print("Message failed")
+            print("Model failed to send")
     
     def evaluate(self):
         pred = self.model(self.X_test)
@@ -104,6 +126,7 @@ class Client:
             self.gradient_descent()
         else:
             self.mini_batch()
+        self.send_model()
     
     def gradient_descent(self):
         for e in range(self.epochs):
