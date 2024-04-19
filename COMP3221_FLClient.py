@@ -42,6 +42,10 @@ class Client:
         print(f"I am client {self.client_id.strip("client")}")
         self.create_log()
         self.retrieve_data()
+        self.write_log(f"I am client {self.client_id.strip("client")}")
+        self.write_log(f"Learning rate: {self.learning_rate}")
+        self.write_log(f"Epochs: {self.epochs}")
+        self.write_log(f"Optimisation method: {"mini-batch " if self.opt_method == 1 else ""}gradient descent")
         self.listener_thread = threading.Thread(target=self.listen_to_server)
         self.listener_thread.start()
         self.send_message(f"CONNECTION ESTABLISHED")
@@ -86,8 +90,9 @@ class Client:
                                         self.opt = optim.SGD(self.model.parameters(), lr=self.learning_rate)
                                         self.iteration = model["iteration"]
                                         self.confirmed = False
-                                        print(f"\nReceived global model {self.iteration + 1} from server")
-                                        self.write_log(f"\nReceived global model {self.iteration + 1} from server")
+                                        print(f"\nI am client {self.client_id.strip("client")}")
+                                        print(f"Received new global model {self.iteration + 1}")
+                                        self.write_log(f"\nReceived new global model {self.iteration + 1}")
                                         update = threading.Thread(target=self.update)
                                         update.start()
                                     except Exception as e:
@@ -158,7 +163,7 @@ class Client:
                     client_socket.close()
             except Exception as e:
                 print(f"Model failed to send: {e}")
-        print("\tModel sent to server")
+        print("Sending new local model")
     
     def evaluate(self) -> torch.Tensor:
         """
@@ -169,7 +174,7 @@ class Client:
         """
         pred = self.model(self.X_test)
         loss = self.loss_fn(pred, self.Y_test)
-        print(f"\tTesting MSE: {loss:.04f}")
+        print(f"Testing MSE: {loss:.04f}")
         self.write_log(f"\tTesting MSE: {loss:.04f}")
         return loss
     
@@ -180,7 +185,7 @@ class Client:
         to the server once the training is complete.
         """
         self.evaluate()
-        print(f"\tUpdating local model:")
+        print(f"Local training...")
         if self.opt_method == 0:
             self.gradient_descent()
         else:
@@ -202,8 +207,7 @@ class Client:
             loss.backward()
             self.opt.step()
             self.opt.zero_grad()
-        print(f"\tPre-update training MSE: {losses[0]:.04f}")
-        print(f"\tPost-update training MSE: {losses[-1]:.04f}")
+        print(f"Training MSE: {losses[-1]:.04f}")
         self.write_log(f"\tPre-update training MSE: {losses[0]:.04f}")
         self.write_log(f"\tPost-update training MSE: {losses[-1]:.04f}")
     
