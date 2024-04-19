@@ -29,7 +29,7 @@ class Client:
         self.opt = None
         self.loss_fn = F.mse_loss
         self.epochs = 100
-        self.learning_rate = 1e-10
+        self.learning_rate = 1e-7
         self.confirmed = False
         
     def start(self):
@@ -49,41 +49,44 @@ class Client:
             pass
 
     def listen_to_server(self):  # Listen on port 6001, 6002, etc.
-        try:
-            while True:
+        print(f"Client listening on port {self.port}")
+        while True:
+            try:
                 with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as client_socket:
                     client_socket.bind((HOST, self.port))
-                    client_socket.listen()
-                    print(f"Client listening on port {self.port}")
-
+                    client_socket.listen(5)
+                    
                     conn, addr = client_socket.accept()
                     with conn:
-                        data = conn.recv(1)
-                        if data == b"0":
-                            data = b""
-                            while True:
-                                packet = conn.recv(1048)
-                                if not packet:
-                                    break
-                                data += packet
-                            if data:
-                                try:
-                                    model = pickle.loads(data)
-                                    self.model = model["model"]
-                                    self.opt = optim.SGD(self.model.parameters(), lr=self.learning_rate)
-                                    print("Received model from server")
-                                    self.update()
-                                except Exception as e:
-                                    print(f"Failed: {e}")
-                            
-                        elif data == b"1":
-                            self.confirmed = True
-                            print("----SENT-----")
+                        try:
+                            data = conn.recv(1)
+                            if data == b"0":
+                                data = b""
+                                while True:
+                                    packet = conn.recv(1048)
+                                    if not packet:
+                                        break
+                                    data += packet
+                                if data:
+                                    try:
+                                        model = pickle.loads(data)
+                                        self.model = model["model"]
+                                        self.opt = optim.SGD(self.model.parameters(), lr=self.learning_rate)
+                                        print("Received model from server")
+                                        update = threading.Thread(target=self.update)
+                                        update.start()
+                                    except Exception as e:
+                                        print(f"Failed: {e}")
+                                
+                            elif data == b"1":
+                                self.confirmed = True
+                        except Exception as e:
+                            print("Could not read from server: {e}")
                     client_socket.close()
-        except KeyboardInterrupt:
-            exit()
-        except Exception as e:
-            print(f"Can't connect to the listener socket: {e}")
+            except KeyboardInterrupt:
+                exit()
+            except Exception as e:
+                print(f"Can't connect to the listener socket: {e}")
 
     def send_message(self, message):
         message = {
@@ -123,8 +126,8 @@ class Client:
                     client_socket.close()
             except KeyboardInterrupt:
                 exit()
-            except Exception:
-                print("Model failed to send")
+            except Exception as e:
+                print(f"Model failed to send: {e}")
         print("Model sent to server")
     
     def evaluate(self):
@@ -143,11 +146,11 @@ class Client:
     def gradient_descent(self):
         output = ""
         for e in range(self.epochs):
-            output += f"\t\tLocal update {e + 1}: "
+            output += f"Local update {e + 1}: "
             pred = self.model(self.X_train)
             loss = self.loss_fn(pred, self.Y_train)
             loss.backward()
-            output += "Loss: {loss}"
+            output += f"Loss: {loss}\t"
             self.opt.step()
             self.opt.zero_grad()
         print(output)
