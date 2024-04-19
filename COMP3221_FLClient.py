@@ -35,6 +35,7 @@ class Client:
         
     def start(self):
         print(f"I am client {self.client_id.strip("client")}")
+        self.create_log()
         self.retrieve_data()
         self.listener_thread = threading.Thread(target=self.listen_to_server)
         self.listener_thread.start()
@@ -44,8 +45,6 @@ class Client:
         try:
             self.stop_event.set()
             self.listener_thread.join()
-        except KeyboardInterrupt:
-            exit()
         except Exception:
             pass
 
@@ -75,7 +74,8 @@ class Client:
                                         self.opt = optim.SGD(self.model.parameters(), lr=self.learning_rate)
                                         self.iteration = model["iteration"]
                                         self.confirmed = False
-                                        print("Received model from server")
+                                        print(f"\nReceived global model {self.iteration + 1} from server")
+                                        self.write_log(f"\nReceived global model {self.iteration + 1} from server")
                                         update = threading.Thread(target=self.update)
                                         update.start()
                                     except Exception as e:
@@ -86,8 +86,6 @@ class Client:
                         except Exception as e:
                             print("Could not read from server: {e}")
                     client_socket.close()
-            except KeyboardInterrupt:
-                exit()
             except Exception as e:
                 print(f"Can't connect to the listener socket: {e}")
 
@@ -106,8 +104,6 @@ class Client:
                 client_socket.sendall(json.dumps(message).encode())
                 print(f"Message sent to server: {message["content"]}")
                 client_socket.close()
-        except KeyboardInterrupt:
-            exit()
         except Exception as e:
             print(f"Message failed: {e}")
             
@@ -128,19 +124,20 @@ class Client:
                     sent = self.confirmed
                     self.confirmed = False
                     client_socket.close()
-            except KeyboardInterrupt:
-                exit()
             except Exception as e:
                 print(f"Model failed to send: {e}")
-        print("Model sent to server")
+        print("\tModel sent to server")
     
     def evaluate(self):
         pred = self.model(self.X_test)
         loss = self.loss_fn(pred, self.Y_test)
+        print(f"\tTesting MSE: {loss:.04f}")
+        self.write_log(f"\tTesting MSE: {loss:.04f}")
         return loss
     
     def update(self):
-        print(f"Updating local model:")
+        self.evaluate()
+        print(f"\tUpdating local model:")
         if self.opt_method == 0:
             self.gradient_descent()
         else:
@@ -148,21 +145,32 @@ class Client:
         self.send_model()
     
     def gradient_descent(self):
-        output = ""
+        """Performs the gradient descent algorithm on the current model.
+        This multiple times, as determined by self.epochs.
+        The MSE result before and after all epochs are printed to the terminal and
+        saved in the logs.
+        """
+        losses = []
         for e in range(self.epochs):
-            output += f"Local update {e + 1}: "
             pred = self.model(self.X_train)
             loss = self.loss_fn(pred, self.Y_train)
+            losses.append(loss)
             loss.backward()
-            output += f"Loss: {loss}\t"
             self.opt.step()
             self.opt.zero_grad()
-        print(output)
+        print(f"\tPre-update training MSE: {losses[0]:.04f}")
+        print(f"\tPost-update training MSE: {losses[-1]:.04f}")
+        self.write_log(f"\tPre-update training MSE: {losses[0]:.04f}")
+        self.write_log(f"\tPost-update training MSE: {losses[-1]:.04f}")
     
     def mini_batch(self):
         pass
 
     def retrieve_data(self):
+        """Retrieves the training data and testing data for the client from the files.
+        This data is stored inside the client instance and used for evaluating and training
+        the model in each iteration.
+        """
         # retrieve training data
         df = pd.read_csv(f"./FLData/calhousing_train_{self.client_id}.csv")
         X_train = df.iloc[:, :-1].values
@@ -177,6 +185,21 @@ class Client:
         self.X_test = torch.Tensor(X_test).type(torch.float32)
         self.Y_test = torch.Tensor(y_test).type(torch.float32).unsqueeze(1)
         print("Data retrieved from files")
+        
+    def create_log(self) -> None:
+        try:
+            with open(f"./FLLogs/{self.client_id}_log.txt", "w") as f:
+                f.close()
+        except IOError as e:
+            print(f"Error creating log file: {e}")
+        
+    def write_log(self, message: str) -> None:
+        try:
+            with open(f"./FLLogs/{self.client_id}_log.txt", "a") as f:
+                f.write(message + "\n")
+                f.close()
+        except IOError as e:
+            print(f"Error with writing to log: {e}")
     
 if __name__ == "__main__":
     id = sys.argv[1]

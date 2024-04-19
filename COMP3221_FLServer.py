@@ -131,7 +131,7 @@ class Server:
         for t in range(self.T):
             self.iteration = t
             self.clients = self.client_stack.copy()
-            print(f"Global iteration {t + 1}:")
+            print(f"\nGlobal iteration {t + 1}:")
             sender_thread = threading.Thread(target=self.send_model)
             sender_thread.start()
             while not self.check():
