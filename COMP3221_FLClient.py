@@ -228,7 +228,7 @@ class Client:
         The MSE result before and after all epochs are printed to the terminal and
         saved in the logs.
         """
-        batch_size = 128
+        batch_size = 64
         dataset = torch.utils.data.TensorDataset(self.X_train, self.Y_train)
         dataloader = torch.utils.data.DataLoader(dataset, batch_size=batch_size, shuffle=True)
 

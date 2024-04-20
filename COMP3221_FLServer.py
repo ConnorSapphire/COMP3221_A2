@@ -15,6 +15,7 @@ class Server:
         self.port = port
         self.subsamp = subsamp
         self.clients = {}
+        self.subsamp_clients = []
         self.client_stack = {}
         self.listener_threads = []
         self.stop_event = threading.Event()
@@ -94,6 +95,7 @@ class Server:
                                         model = pickle.loads(data)
                                         client_id = model["client_id"]
                                         self.clients[client_id]["model"] = model["model"]
+                                        self.clients[client_id]["model_received"] = True
                                         self.send_confirmation(client_id)
                                         print(f"Getting local model from client {client_id.strip('client')}")
                                     except Exception as e:
@@ -118,8 +120,12 @@ class Server:
         }
         # send messages
         for client in self.clients:
+            # only broadcast to sub clients for this round ONLY IF subsampling is on
+            if len(self.subsamp_clients) > 0 and client not in self.subsamp_clients:
+                continue
             try:
                 with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as server_socket:
+                    #print(f"Sending global model to {client}")
                     server_socket.connect((HOST, self.clients[client]["port"]))
                     # send binary 0 to inform client to expect a model
                     server_socket.sendall(b"0")
@@ -151,10 +157,10 @@ class Server:
         Perform all the steps of the federated learning algorithm.
         """
         print(f"Waiting for {self.wait} seconds for all clients to join")
-        time.sleep(self.wait) # wait for clients to join
+        time.sleep(self.wait)  # wait for clients to join
         for t in range(self.T):
             self.iteration = t
-            self.clients = self.client_stack.copy() # update client list
+            self.clients = self.client_stack.copy()  # update client list
             print("Broadcasting new global model")
             sender_thread = threading.Thread(target=self.send_model)
             sender_thread.start()
@@ -174,8 +180,10 @@ class Server:
         else:
             clients = self.random_clients(self.subsamp)
             self.subsampled_update(clients)
+
+        # Reset model received
         for client in self.clients:
-            self.clients[client].pop("model")
+            self.clients[client]["model_received"] = False
     
     def subsampled_update(self, clients: dict) -> None:
         """
@@ -219,15 +227,21 @@ class Server:
         """
         clients = dict()
         fake = self.clients.copy()
+        self.subsamp_clients.clear()
+
         # check if size provided is larger than available clients
         if size >= len(self.clients.keys()):
             print(f"Only {len(self.clients.keys())} are available. No subsampling is being performed.")
-            self.subsampled_update(self.clients)
+            return self.clients
+
         # add clients to dictionary
         while len(clients) < size:
             client = random.choice(list(fake.keys()))
             client_details = fake.pop(client)
             clients.update({client: client_details})
+            self.subsamp_clients.append(client)
+
+        #print("Randomly subsampled clients: ", self.subsamp_clients)
         return clients
 
     def check(self) -> bool:
@@ -238,11 +252,20 @@ class Server:
         Returns:
             bool: True if all client have returned a local model.
         """
+        # No clients
         if len(self.clients) == 0:
             return False
-        for client in self.clients:
-            if not "model" in self.clients[client]:
-                return False
+
+        # Check only sub clients
+        if len(self.subsamp_clients) > 0:
+            for client in self.subsamp_clients:
+                if not self.clients[client].get("model_received", False):
+                    return False
+        else:  # Check all clients
+            for client in self.clients:
+                if not self.clients[client].get("model_received", False):
+                    return False
+
         return True
     
 if __name__ == "__main__":
