@@ -162,26 +162,33 @@ class Server:
             self.iteration = t
             self.clients = self.client_stack.copy()  # update client list
             print("Broadcasting new global model")
+            if self.subsamp == 0:
+                clients = self.clients
+            else:
+                clients = self.random_clients(self.subsamp)
             sender_thread = threading.Thread(target=self.send_model)
             sender_thread.start()
             print(f"\nGlobal Iteration {t + 1}:")
+            print(f"Total Number of clients: {len(self.clients)}")
             while not self.check():
                 time.sleep(0.25)
-            self.update()        
+            self.update(clients)
                 
-    def update(self) -> None:
+    def update(self, clients) -> None:
         """
         Performs all steps to update the global model based on the local models provided
         and using the subsampling defined by self.subsamp where 0 means no subsampling.
         """
         print("Aggregating new global model")
-        if self.subsamp == 0:
-            self.subsampled_update(self.clients)
-        else:
-            clients = self.random_clients(self.subsamp)
-            self.subsampled_update(clients)
+        self.subsampled_update(clients)
 
-        # Reset model received
+        #if self.subsamp == 0:
+            #self.subsampled_update(self.clients)
+        #else:
+            #clients = self.random_clients(self.subsamp)
+            #self.subsampled_update(clients)
+
+        # Reset model received flag
         for client in self.clients:
             self.clients[client]["model_received"] = False
     

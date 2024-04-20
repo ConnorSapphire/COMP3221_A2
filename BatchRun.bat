@@ -1,4 +1,4 @@
-start cmd /k python COMP3221_FLServer.py 6000 5
+start cmd /k python COMP3221_FLServer.py 6000 3
 
 start cmd /k python COMP3221_FLClient.py client1 6001 1
 start cmd /k python COMP3221_FLClient.py client2 6002 0

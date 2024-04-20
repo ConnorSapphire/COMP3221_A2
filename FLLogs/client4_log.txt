@@ -3,107 +3,12 @@ Learning rate: 1e-07
 Epochs: 300
 Optimisation method: gradient descent
 
-Received new global model 1
-	Testing MSE: 448449.3750
-	Pre-update training MSE: 443766.3125
-	Post-update training MSE: 181.7527
-
 Received new global model 2
-	Testing MSE: 29.6728
-	Pre-update training MSE: 31.9934
-	Post-update training MSE: 16.1647
+	Testing MSE: 40.5257
+	Pre-update training MSE: 39.7593
+	Post-update training MSE: 22.4123
 
 Received new global model 3
-	Testing MSE: 4.7333
-	Pre-update training MSE: 5.0684
-	Post-update training MSE: 3.8692
-
-Received new global model 4
-	Testing MSE: 2.8079
-	Pre-update training MSE: 2.8212
-	Post-update training MSE: 2.7052
-
-Received new global model 5
-	Testing MSE: 2.4777
-	Pre-update training MSE: 2.4260
-	Post-update training MSE: 2.3956
-
-Received new global model 6
-	Testing MSE: 2.2693
-	Pre-update training MSE: 2.2038
-	Post-update training MSE: 2.1846
-
-Received new global model 7
-	Testing MSE: 2.0965
-	Pre-update training MSE: 2.0323
-	Post-update training MSE: 2.0099
-
-Received new global model 8
-	Testing MSE: 1.9426
-	Pre-update training MSE: 1.8775
-	Post-update training MSE: 1.8620
-
-Received new global model 9
-	Testing MSE: 1.8132
-	Pre-update training MSE: 1.7522
-	Post-update training MSE: 1.7365
-
-Received new global model 10
-	Testing MSE: 1.6993
-	Pre-update training MSE: 1.6397
-	Post-update training MSE: 1.6301
-
-Received new global model 11
-	Testing MSE: 1.7524
-	Pre-update training MSE: 1.6960
-	Post-update training MSE: 1.5399
-
-Received new global model 12
-	Testing MSE: 1.5360
-	Pre-update training MSE: 1.4805
-	Post-update training MSE: 1.4633
-
-Received new global model 13
-	Testing MSE: 1.4603
-	Pre-update training MSE: 1.4058
-	Post-update training MSE: 1.3982
-
-Received new global model 14
-	Testing MSE: 1.4018
-	Pre-update training MSE: 1.3482
-	Post-update training MSE: 1.3429
-
-Received new global model 15
-	Testing MSE: 1.3543
-	Pre-update training MSE: 1.3017
-	Post-update training MSE: 1.2959
-
-Received new global model 16
-	Testing MSE: 1.3131
-	Pre-update training MSE: 1.2614
-	Post-update training MSE: 1.2558
-
-Received new global model 17
-	Testing MSE: 1.2864
-	Pre-update training MSE: 1.2347
-	Post-update training MSE: 1.2217
-
-Received new global model 18
-	Testing MSE: 1.2469
-	Pre-update training MSE: 1.1972
-	Post-update training MSE: 1.1926
-
-Received new global model 19
-	Testing MSE: 1.2198
-	Pre-update training MSE: 1.1702
-	Post-update training MSE: 1.1677
-
-Received new global model 20
-	Testing MSE: 1.1981
-	Pre-update training MSE: 1.1488
-	Post-update training MSE: 1.1464
-
-Received new global model 21
-	Testing MSE: 1.1859
-	Pre-update training MSE: 1.1361
-	Post-update training MSE: 1.1281
+	Testing MSE: 15.3564
+	Pre-update training MSE: 14.4723
+	Post-update training MSE: 10.6752
