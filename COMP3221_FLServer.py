@@ -60,6 +60,7 @@ class Server:
                     with conn:
                         try:
                             message = conn.recv(1)
+                            print("Got a message")
                             # check if message is a string
                             if message == b"0": # message is a string
                                 message = conn.recv(1024)
@@ -95,14 +96,13 @@ class Server:
                                         client_id = model["client_id"]
                                         self.clients[client_id]["model"] = model["model"]
                                         self.send_confirmation(client_id)
-                                        print(f"Getting local model from client {client_id.strip("client")}")
+                                        print(f"Getting local model from client {client_id.strip('client')}")
                                     except Exception as e:
                                         print(f"Failed: {e}")
                                         break
                         except Exception as e:
                             print(f"Error listening to client: {e}")
                             break
-                    # print(f"Got connection from {addr}")
                     server_socket.close()
             except Exception as e:
                 print(f"Can't connect to listener socket: {e}")

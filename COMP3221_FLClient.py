@@ -28,9 +28,9 @@ class Client:
         self.model = None
         self.opt = None
         self.loss_fn = F.mse_loss
-        self.epochs = 300
+        self.epochs = (opt_method == 0 and 300) or 100
         self.learning_rate = 1e-7
-        self.confirmed = False
+        self.confirmed = threading.Event()
         self.iteration = 0
         
     def start(self) -> None:
@@ -39,13 +39,13 @@ class Client:
         files, creating the listening socket thread, and sending the handshake message to the
         server.
         """
-        print(f"I am client {self.client_id.strip("client")}")
+        print(f"I am client {self.client_id.strip('client')}")
         self.create_log()
         self.retrieve_data()
-        self.write_log(f"I am client {self.client_id.strip("client")}")
+        self.write_log(f"I am client {self.client_id.strip('client')}")
         self.write_log(f"Learning rate: {self.learning_rate}")
         self.write_log(f"Epochs: {self.epochs}")
-        self.write_log(f"Optimisation method: {"mini-batch " if self.opt_method == 1 else ""}gradient descent")
+        self.write_log(f"Optimisation method: {'mini-batch ' if self.opt_method == 1 else ''}gradient descent")
         self.listener_thread = threading.Thread(target=self.listen_to_server)
         self.listener_thread.start()
         self.send_message(f"CONNECTION ESTABLISHED")
@@ -90,8 +90,8 @@ class Client:
                                         self.model = model["model"]
                                         self.opt = optim.SGD(self.model.parameters(), lr=self.learning_rate)
                                         self.iteration = model["iteration"]
-                                        self.confirmed = False
-                                        print(f"\nI am client {self.client_id.strip("client")}")
+                                        # self.confirmed = False
+                                        print(f"\nI am client {self.client_id.strip('client')}")
                                         print(f"Received new global model {self.iteration + 1}")
                                         self.write_log(f"\nReceived new global model {self.iteration + 1}")
                                         update = threading.Thread(target=self.update)
@@ -100,7 +100,7 @@ class Client:
                                         print(f"Failed: {e}")
                             # check if confirming a model was received by the server
                             elif data == b"1": # confirming model received
-                                self.confirmed = True
+                                self.confirmed.set()
                         except Exception as e:
                             print("Could not read from server: {e}")
                     client_socket.close()
@@ -131,7 +131,7 @@ class Client:
                 client_socket.sendall(b"0") 
                 # send message
                 client_socket.sendall(json.dumps(message).encode())
-                print(f"Message sent to server: {message["content"]}")
+                print(f"Message sent to server: {message['content']}")
                 client_socket.close()
         except Exception as e:
             print(f"Message failed: {e}")
@@ -141,7 +141,6 @@ class Client:
         Send the model back to the server. Should be called after the model has been trained.
         """
         # define the message
-        sent = False
         message = {
             "client_id": self.client_id,
             "iteration": self.iteration,
@@ -149,6 +148,8 @@ class Client:
         }
         
         # attempt to send the message
+        self.confirmed.clear()
+        sent = False
         while not sent:
             try:
                 with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as client_socket:
@@ -158,9 +159,11 @@ class Client:
                     # send the message
                     client_socket.sendall(pickle.dumps(message))
                     # wait and then confirm whether message was received
-                    time.sleep(0.15)
-                    sent = self.confirmed
-                    self.confirmed = False
+                    if self.confirmed.wait(timeout=0.25):
+                        sent = True
+                    else:
+                        #print("Confirmation timed out, resending...")
+                        pass
                     client_socket.close()
             except Exception as e:
                 print(f"Model failed to send: {e}")
@@ -201,13 +204,19 @@ class Client:
         saved in the logs.
         """
         losses = []
+        start_time = time.time()
         for e in range(self.epochs):
+            start_time = time.time()
             pred = self.model(self.X_train)
             loss = self.loss_fn(pred, self.Y_train)
             losses.append(loss)
             loss.backward()
             self.opt.step()
             self.opt.zero_grad()
+
+        epoch_duration = time.time() - start_time
+        print(f"{self.epochs} epochs completed in {epoch_duration:.2f} seconds")
+
         print(f"Training MSE: {losses[-1]:.04f}")
         self.write_log(f"\tPre-update training MSE: {losses[0]:.04f}")
         self.write_log(f"\tPost-update training MSE: {losses[-1]:.04f}")
@@ -219,7 +228,27 @@ class Client:
         The MSE result before and after all epochs are printed to the terminal and
         saved in the logs.
         """
-        pass
+        batch_size = 128
+        dataset = torch.utils.data.TensorDataset(self.X_train, self.Y_train)
+        dataloader = torch.utils.data.DataLoader(dataset, batch_size=batch_size, shuffle=True)
+
+        losses = []
+        start_time = time.time()
+        for e in range(self.epochs):
+            for X_batch, y_batch in dataloader:
+                pred = self.model(X_batch)
+                loss = self.loss_fn(pred, y_batch)
+                loss.backward()
+                self.opt.step()
+                self.opt.zero_grad()
+                losses.append(loss.item())
+
+        epoch_duration = time.time() - start_time
+        print(f"{self.epochs} epochs completed in {epoch_duration:.2f} seconds")
+
+        print(f"Training MSE: {losses[-1]:.04f}")
+        self.write_log(f"\tPre-update training MSE: {losses[0]:.04f}")
+        self.write_log(f"\tPost-update training MSE: {losses[-1]:.04f}")
 
     def retrieve_data(self):
         """
