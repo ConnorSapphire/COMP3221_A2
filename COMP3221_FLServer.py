@@ -60,7 +60,6 @@ class Server:
                     with conn:
                         try:
                             message = conn.recv(1)
-                            print("Got a message")
                             # check if message is a string
                             if message == b"0": # message is a string
                                 message = conn.recv(1024)

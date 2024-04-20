@@ -1,4 +1,62 @@
 I am client 2
 Learning rate: 1e-07
-Epochs: 300
-Optimisation method: gradient descent
+Epochs: 100
+Optimisation method: mini-batch gradient descent
+
+Received new global model 1
+	Testing MSE: 403491.1875
+	Pre-update training MSE: 375446.3750
+	Post-update training MSE: 8.1746
+
+Received new global model 2
+	Testing MSE: 6.0685
+	Pre-update training MSE: 5.9025
+	Post-update training MSE: 4.6981
+
+Received new global model 3
+	Testing MSE: 4.5937
+	Pre-update training MSE: 3.9840
+	Post-update training MSE: 3.4391
+
+Received new global model 4
+	Testing MSE: 4.1277
+	Pre-update training MSE: 3.5935
+	Post-update training MSE: 3.2867
+
+Received new global model 5
+	Testing MSE: 3.8071
+	Pre-update training MSE: 3.9861
+	Post-update training MSE: 3.2604
+
+Received new global model 6
+	Testing MSE: 3.4999
+	Pre-update training MSE: 3.3405
+	Post-update training MSE: 2.3423
+
+Received new global model 7
+	Testing MSE: 3.2715
+	Pre-update training MSE: 2.5950
+	Post-update training MSE: 2.3192
+
+Received new global model 8
+	Testing MSE: 3.0326
+	Pre-update training MSE: 4.3824
+	Post-update training MSE: 2.4205
+
+Received new global model 9
+	Testing MSE: 2.8651
+	Pre-update training MSE: 3.4068
+	Post-update training MSE: 2.6017
+
+Received new global model 10
+	Testing MSE: 2.6565
+	Pre-update training MSE: 4.7434
+	Post-update training MSE: 1.7689
+
+Received new global model 11
+	Testing MSE: 2.5159
+	Pre-update training MSE: 2.1257
+	Post-update training MSE: 2.2160
+
+Received new global model 12
+	Testing MSE: 2.4072
