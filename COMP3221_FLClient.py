@@ -204,7 +204,7 @@ class Client:
         saved in the logs.
         """
         losses = []
-        start_time = time.time()
+        #start_time = time.time()
         for e in range(self.epochs):
             start_time = time.time()
             pred = self.model(self.X_train)
@@ -214,8 +214,8 @@ class Client:
             self.opt.step()
             self.opt.zero_grad()
 
-        epoch_duration = time.time() - start_time
-        print(f"{self.epochs} epochs completed in {epoch_duration:.2f} seconds")
+        #epoch_duration = time.time() - start_time
+        #print(f"{self.epochs} epochs completed in {epoch_duration:.2f} seconds")
 
         print(f"Training MSE: {losses[-1]:.04f}")
         self.write_log(f"\tPre-update training MSE: {losses[0]:.04f}")
@@ -233,7 +233,7 @@ class Client:
         dataloader = torch.utils.data.DataLoader(dataset, batch_size=batch_size, shuffle=True)
 
         losses = []
-        start_time = time.time()
+        #start_time = time.time()
         for e in range(self.epochs):
             for X_batch, y_batch in dataloader:
                 pred = self.model(X_batch)
@@ -243,8 +243,8 @@ class Client:
                 self.opt.zero_grad()
                 losses.append(loss.item())
 
-        epoch_duration = time.time() - start_time
-        print(f"{self.epochs} epochs completed in {epoch_duration:.2f} seconds")
+        #epoch_duration = time.time() - start_time
+        #print(f"{self.epochs} epochs completed in {epoch_duration:.2f} seconds")
 
         print(f"Training MSE: {losses[-1]:.04f}")
         self.write_log(f"\tPre-update training MSE: {losses[0]:.04f}")

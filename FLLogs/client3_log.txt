@@ -1,12 +1,504 @@
 I am client 3
 Learning rate: 1e-07
-Epochs: 100
-Optimisation method: mini-batch gradient descent
+Epochs: 300
+Optimisation method: gradient descent
+
+Received new global model 1
+	Testing MSE: 389863.2500
+	Pre-update training MSE: 376440.9375
+	Post-update training MSE: 263.5265
 
 Received new global model 2
-	Testing MSE: 38.6675
-	Pre-update training MSE: 33.1546
-	Post-update training MSE: 4.5855
+	Testing MSE: 217.6541
+	Pre-update training MSE: 258.0470
+	Post-update training MSE: 151.7261
 
 Received new global model 3
-	Testing MSE: 14.1586
+	Testing MSE: 102.4995
+	Pre-update training MSE: 149.9352
+	Post-update training MSE: 100.7375
+
+Received new global model 4
+	Testing MSE: 49.7546
+	Pre-update training MSE: 101.0752
+	Post-update training MSE: 77.4099
+
+Received new global model 5
+	Testing MSE: 25.5109
+	Pre-update training MSE: 78.8898
+	Post-update training MSE: 66.5504
+
+Received new global model 6
+	Testing MSE: 14.3077
+	Pre-update training MSE: 68.6576
+	Post-update training MSE: 61.2891
+
+Received new global model 7
+	Testing MSE: 9.0879
+	Pre-update training MSE: 63.7452
+	Post-update training MSE: 58.5282
+
+Received new global model 8
+	Testing MSE: 6.6248
+	Pre-update training MSE: 61.1771
+	Post-update training MSE: 56.8763
+
+Received new global model 9
+	Testing MSE: 5.4392
+	Pre-update training MSE: 59.6273
+	Post-update training MSE: 55.7122
+
+Received new global model 10
+	Testing MSE: 4.8508
+	Pre-update training MSE: 58.5112
+	Post-update training MSE: 54.7613
+
+Received new global model 11
+	Testing MSE: 4.5448
+	Pre-update training MSE: 57.5752
+	Post-update training MSE: 53.9040
+
+Received new global model 12
+	Testing MSE: 4.3747
+	Pre-update training MSE: 56.7120
+	Post-update training MSE: 53.0891
+
+Received new global model 13
+	Testing MSE: 4.2714
+	Pre-update training MSE: 55.8781
+	Post-update training MSE: 52.2956
+
+Received new global model 14
+	Testing MSE: 4.2020
+	Pre-update training MSE: 55.0576
+	Post-update training MSE: 51.5155
+
+Received new global model 15
+	Testing MSE: 4.1503
+	Pre-update training MSE: 54.2453
+	Post-update training MSE: 50.7462
+
+Received new global model 16
+	Testing MSE: 4.1085
+	Pre-update training MSE: 53.4407
+	Post-update training MSE: 49.9871
+
+Received new global model 17
+	Testing MSE: 4.0723
+	Pre-update training MSE: 52.6441
+	Post-update training MSE: 49.2379
+
+Received new global model 18
+	Testing MSE: 4.0396
+	Pre-update training MSE: 51.8565
+	Post-update training MSE: 48.4991
+
+Received new global model 19
+	Testing MSE: 4.0091
+	Pre-update training MSE: 51.0788
+	Post-update training MSE: 47.7709
+
+Received new global model 20
+	Testing MSE: 3.9802
+	Pre-update training MSE: 50.3119
+	Post-update training MSE: 47.0536
+
+Received new global model 21
+	Testing MSE: 3.9525
+	Pre-update training MSE: 49.5560
+	Post-update training MSE: 46.3473
+
+Received new global model 22
+	Testing MSE: 3.9256
+	Pre-update training MSE: 48.8112
+	Post-update training MSE: 45.6518
+
+Received new global model 23
+	Testing MSE: 3.8995
+	Pre-update training MSE: 48.0777
+	Post-update training MSE: 44.9672
+
+Received new global model 24
+	Testing MSE: 3.8739
+	Pre-update training MSE: 47.3555
+	Post-update training MSE: 44.2933
+
+Received new global model 25
+	Testing MSE: 3.8489
+	Pre-update training MSE: 46.6444
+	Post-update training MSE: 43.6299
+
+Received new global model 26
+	Testing MSE: 3.8244
+	Pre-update training MSE: 45.9444
+	Post-update training MSE: 42.9769
+
+Received new global model 27
+	Testing MSE: 3.8004
+	Pre-update training MSE: 45.2554
+	Post-update training MSE: 42.3343
+
+Received new global model 28
+	Testing MSE: 3.7768
+	Pre-update training MSE: 44.5771
+	Post-update training MSE: 41.7017
+
+Received new global model 29
+	Testing MSE: 3.7536
+	Pre-update training MSE: 43.9095
+	Post-update training MSE: 41.0790
+
+Received new global model 30
+	Testing MSE: 3.7307
+	Pre-update training MSE: 43.2524
+	Post-update training MSE: 40.4662
+
+Received new global model 31
+	Testing MSE: 3.7083
+	Pre-update training MSE: 42.6056
+	Post-update training MSE: 39.8631
+
+Received new global model 32
+	Testing MSE: 3.6863
+	Pre-update training MSE: 41.9691
+	Post-update training MSE: 39.2695
+
+Received new global model 33
+	Testing MSE: 3.6646
+	Pre-update training MSE: 41.3425
+	Post-update training MSE: 38.6852
+
+Received new global model 34
+	Testing MSE: 3.6433
+	Pre-update training MSE: 40.7259
+	Post-update training MSE: 38.1101
+
+Received new global model 35
+	Testing MSE: 3.6223
+	Pre-update training MSE: 40.1189
+	Post-update training MSE: 37.5442
+
+Received new global model 36
+	Testing MSE: 3.6017
+	Pre-update training MSE: 39.5216
+	Post-update training MSE: 36.9871
+
+Received new global model 37
+	Testing MSE: 3.5814
+	Pre-update training MSE: 38.9336
+	Post-update training MSE: 36.4388
+
+Received new global model 38
+	Testing MSE: 3.5615
+	Pre-update training MSE: 38.3549
+	Post-update training MSE: 35.8992
+
+Received new global model 39
+	Testing MSE: 3.5418
+	Pre-update training MSE: 37.7853
+	Post-update training MSE: 35.3680
+
+Received new global model 40
+	Testing MSE: 3.5225
+	Pre-update training MSE: 37.2248
+	Post-update training MSE: 34.8453
+
+Received new global model 41
+	Testing MSE: 3.5035
+	Pre-update training MSE: 36.6731
+	Post-update training MSE: 34.3310
+
+Received new global model 42
+	Testing MSE: 3.4849
+	Pre-update training MSE: 36.1302
+	Post-update training MSE: 33.8247
+
+Received new global model 43
+	Testing MSE: 3.4665
+	Pre-update training MSE: 35.5959
+	Post-update training MSE: 33.3264
+
+Received new global model 44
+	Testing MSE: 3.4484
+	Pre-update training MSE: 35.0700
+	Post-update training MSE: 32.8360
+
+Received new global model 45
+	Testing MSE: 3.4306
+	Pre-update training MSE: 34.5523
+	Post-update training MSE: 32.3534
+
+Received new global model 46
+	Testing MSE: 3.4131
+	Pre-update training MSE: 34.0429
+	Post-update training MSE: 31.8783
+
+Received new global model 47
+	Testing MSE: 3.3959
+	Pre-update training MSE: 33.5415
+	Post-update training MSE: 31.4108
+
+Received new global model 48
+	Testing MSE: 3.3790
+	Pre-update training MSE: 33.0480
+	Post-update training MSE: 30.9506
+
+Received new global model 49
+	Testing MSE: 3.3623
+	Pre-update training MSE: 32.5623
+	Post-update training MSE: 30.4977
+
+Received new global model 50
+	Testing MSE: 3.3459
+	Pre-update training MSE: 32.0843
+	Post-update training MSE: 30.0520
+
+Received new global model 51
+	Testing MSE: 3.3298
+	Pre-update training MSE: 31.6138
+	Post-update training MSE: 29.6133
+
+Received new global model 52
+	Testing MSE: 3.3140
+	Pre-update training MSE: 31.1508
+	Post-update training MSE: 29.1815
+
+Received new global model 53
+	Testing MSE: 3.2983
+	Pre-update training MSE: 30.6950
+	Post-update training MSE: 28.7565
+
+Received new global model 54
+	Testing MSE: 3.2830
+	Pre-update training MSE: 30.2464
+	Post-update training MSE: 28.3383
+
+Received new global model 55
+	Testing MSE: 3.2679
+	Pre-update training MSE: 29.8050
+	Post-update training MSE: 27.9266
+
+Received new global model 56
+	Testing MSE: 3.2530
+	Pre-update training MSE: 29.3705
+	Post-update training MSE: 27.5215
+
+Received new global model 57
+	Testing MSE: 3.2384
+	Pre-update training MSE: 28.9428
+	Post-update training MSE: 27.1227
+
+Received new global model 58
+	Testing MSE: 3.2240
+	Pre-update training MSE: 28.5220
+	Post-update training MSE: 26.7303
+
+Received new global model 59
+	Testing MSE: 3.2098
+	Pre-update training MSE: 28.1078
+	Post-update training MSE: 26.3441
+
+Received new global model 60
+	Testing MSE: 3.1959
+	Pre-update training MSE: 27.7001
+	Post-update training MSE: 25.9640
+
+Received new global model 61
+	Testing MSE: 3.1822
+	Pre-update training MSE: 27.2989
+	Post-update training MSE: 25.5899
+
+Received new global model 62
+	Testing MSE: 3.1687
+	Pre-update training MSE: 26.9041
+	Post-update training MSE: 25.2217
+
+Received new global model 63
+	Testing MSE: 3.1554
+	Pre-update training MSE: 26.5154
+	Post-update training MSE: 24.8593
+
+Received new global model 64
+	Testing MSE: 3.1424
+	Pre-update training MSE: 26.1330
+	Post-update training MSE: 24.5027
+
+Received new global model 65
+	Testing MSE: 3.1295
+	Pre-update training MSE: 25.7565
+	Post-update training MSE: 24.1517
+
+Received new global model 66
+	Testing MSE: 3.1168
+	Pre-update training MSE: 25.3860
+	Post-update training MSE: 23.8063
+
+Received new global model 67
+	Testing MSE: 3.1044
+	Pre-update training MSE: 25.0214
+	Post-update training MSE: 23.4663
+
+Received new global model 68
+	Testing MSE: 3.0921
+	Pre-update training MSE: 24.6625
+	Post-update training MSE: 23.1317
+
+Received new global model 69
+	Testing MSE: 3.0801
+	Pre-update training MSE: 24.3093
+	Post-update training MSE: 22.8023
+
+Received new global model 70
+	Testing MSE: 3.0682
+	Pre-update training MSE: 23.9617
+	Post-update training MSE: 22.4782
+
+Received new global model 71
+	Testing MSE: 3.0565
+	Pre-update training MSE: 23.6196
+	Post-update training MSE: 22.1592
+
+Received new global model 72
+	Testing MSE: 3.0450
+	Pre-update training MSE: 23.2828
+	Post-update training MSE: 21.8452
+
+Received new global model 73
+	Testing MSE: 3.0337
+	Pre-update training MSE: 22.9514
+	Post-update training MSE: 21.5362
+
+Received new global model 74
+	Testing MSE: 3.0225
+	Pre-update training MSE: 22.6252
+	Post-update training MSE: 21.2320
+
+Received new global model 75
+	Testing MSE: 3.0116
+	Pre-update training MSE: 22.3041
+	Post-update training MSE: 20.9326
+
+Received new global model 76
+	Testing MSE: 3.0008
+	Pre-update training MSE: 21.9881
+	Post-update training MSE: 20.6380
+
+Received new global model 77
+	Testing MSE: 2.9901
+	Pre-update training MSE: 21.6770
+	Post-update training MSE: 20.3479
+
+Received new global model 78
+	Testing MSE: 2.9797
+	Pre-update training MSE: 21.3708
+	Post-update training MSE: 20.0625
+
+Received new global model 79
+	Testing MSE: 2.9694
+	Pre-update training MSE: 21.0695
+	Post-update training MSE: 19.7815
+
+Received new global model 80
+	Testing MSE: 2.9592
+	Pre-update training MSE: 20.7729
+	Post-update training MSE: 19.5049
+
+Received new global model 81
+	Testing MSE: 2.9492
+	Pre-update training MSE: 20.4809
+	Post-update training MSE: 19.2327
+
+Received new global model 82
+	Testing MSE: 2.9394
+	Pre-update training MSE: 20.1936
+	Post-update training MSE: 18.9648
+
+Received new global model 83
+	Testing MSE: 2.9297
+	Pre-update training MSE: 19.9107
+	Post-update training MSE: 18.7011
+
+Received new global model 84
+	Testing MSE: 2.9202
+	Pre-update training MSE: 19.6323
+	Post-update training MSE: 18.4415
+
+Received new global model 85
+	Testing MSE: 2.9108
+	Pre-update training MSE: 19.3583
+	Post-update training MSE: 18.1860
+
+Received new global model 86
+	Testing MSE: 2.9015
+	Pre-update training MSE: 19.0885
+	Post-update training MSE: 17.9345
+
+Received new global model 87
+	Testing MSE: 2.8924
+	Pre-update training MSE: 18.8230
+	Post-update training MSE: 17.6869
+
+Received new global model 88
+	Testing MSE: 2.8835
+	Pre-update training MSE: 18.5617
+	Post-update training MSE: 17.4433
+
+Received new global model 89
+	Testing MSE: 2.8746
+	Pre-update training MSE: 18.3045
+	Post-update training MSE: 17.2035
+
+Received new global model 90
+	Testing MSE: 2.8659
+	Pre-update training MSE: 18.0513
+	Post-update training MSE: 16.9674
+
+Received new global model 91
+	Testing MSE: 2.8574
+	Pre-update training MSE: 17.8021
+	Post-update training MSE: 16.7351
+
+Received new global model 92
+	Testing MSE: 2.8489
+	Pre-update training MSE: 17.5568
+	Post-update training MSE: 16.5064
+
+Received new global model 93
+	Testing MSE: 2.8406
+	Pre-update training MSE: 17.3154
+	Post-update training MSE: 16.2813
+
+Received new global model 94
+	Testing MSE: 2.8324
+	Pre-update training MSE: 17.0778
+	Post-update training MSE: 16.0597
+
+Received new global model 95
+	Testing MSE: 2.8244
+	Pre-update training MSE: 16.8439
+	Post-update training MSE: 15.8417
+
+Received new global model 96
+	Testing MSE: 2.8164
+	Pre-update training MSE: 16.6137
+	Post-update training MSE: 15.6270
+
+Received new global model 97
+	Testing MSE: 2.8086
+	Pre-update training MSE: 16.3871
+	Post-update training MSE: 15.4158
+
+Received new global model 98
+	Testing MSE: 2.8009
+	Pre-update training MSE: 16.1641
+	Post-update training MSE: 15.2078
+
+Received new global model 99
+	Testing MSE: 2.7933
+	Pre-update training MSE: 15.9446
+	Post-update training MSE: 15.0032
+
+Received new global model 100
+	Testing MSE: 2.7859
+	Pre-update training MSE: 15.7286
+	Post-update training MSE: 14.8018
