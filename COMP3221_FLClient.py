@@ -235,13 +235,15 @@ class Client:
         losses = []
         #start_time = time.time()
         for e in range(self.epochs):
+            epoch_losses = []
             for X_batch, y_batch in dataloader:
                 pred = self.model(X_batch)
                 loss = self.loss_fn(pred, y_batch)
                 loss.backward()
                 self.opt.step()
                 self.opt.zero_grad()
-                losses.append(loss.item())
+                epoch_losses.append(loss.item())
+            losses.append(sum(epoch_losses) / len(epoch_losses))
 
         #epoch_duration = time.time() - start_time
         #print(f"{self.epochs} epochs completed in {epoch_duration:.2f} seconds")
