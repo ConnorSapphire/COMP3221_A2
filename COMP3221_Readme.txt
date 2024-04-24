@@ -21,6 +21,17 @@ Coding Environment:
 
 
 Run Program:
+	WARNING:
+		Data files must exist in a folder in the parent directory named FLData. The
+		files must be of the form:
+			calhousing_test_<client_id>.csv
+			calhousing_train_<client_id>.csv
+
+			where <client_id> is of the form "client<n>" where <n> is the number 
+			representing the client, in the range (1-5)
+
+		An empty folder must exist in the parent directory named FLLogs.
+
 	Info:
 		This program is meant to be imitating a server communicating with clients.
 		Therefore the clients and server must each be run on separate terminals. The
