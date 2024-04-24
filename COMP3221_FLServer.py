@@ -18,19 +18,19 @@ class Server:
         self.subsamp_clients = []
         self.client_stack = {}
         self.listener_threads = []
+        self.federated_thread = None
         self.stop_event = threading.Event()
         self.iteration = 0
         self.T = 100
         self.model = nn.Linear(8, 1)
-        self.wait = 5
+        self.wait = 30
 
     def start(self):
         """
         Start all processes for server instance. Including creating the algorithm thread, and 
         creating the listening socket thread.
         """
-        federated_thread = threading.Thread(target=self.federate, daemon=True)
-        federated_thread.start()
+        self.federated_thread = threading.Thread(target=self.federate, daemon=True)
         listener_thread = threading.Thread(target=self.listen_to_client)
         self.listener_threads.append(listener_thread)
         listener_thread.start()
@@ -75,9 +75,12 @@ class Server:
                                 client_port = message["port"]
                                 content = message["content"]
                                 if message['content'] == "CONNECTION ESTABLISHED":
-                                    print(f"== Handshake: handle {client_id} connection ==")
+                                    self.send_confirmation(client_port)
                                     if len(self.client_stack) < 5:
+                                        print(f"== Handshake: handle {client_id} connection ==")
                                         self.client_stack[client_id] = {"port": client_port, "data_size": client_data_size}
+                                        if not self.federated_thread.is_alive():
+                                            self.federated_thread.start()
                                     else:
                                         print("== Client ignored : Too many clients ==")
                                 else:
@@ -96,7 +99,8 @@ class Server:
                                         client_id = model["client_id"]
                                         self.clients[client_id]["model"] = model["model"]
                                         self.clients[client_id]["model_received"] = True
-                                        self.send_confirmation(client_id)
+                                        client_port = self.clients[client_id]["port"]
+                                        self.send_confirmation(client_port)
                                         print(f"Getting local model from client {client_id.strip('client')}")
                                     except Exception as e:
                                         print(f"Failed: {e}")
@@ -135,16 +139,16 @@ class Server:
                 print(f"Error sending to client: {e}")
                 exit()
     
-    def send_confirmation(self, client: str) -> None:
+    def send_confirmation(self, port: str) -> None:
         """
         Send a confirmation message to a client to confirm a model has been received.
 
         Args:
-            client (str): client id of the client to be contacted.
+            port (str): port of the client to be contacted.
         """
         try:
             with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as server_socket:
-                server_socket.connect((HOST, self.clients[client]["port"]))
+                server_socket.connect((HOST, port))
                 # binary 1 represents a confirmation message
                 server_socket.sendall(b"1")
                 server_socket.close()

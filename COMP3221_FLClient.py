@@ -124,17 +124,24 @@ class Client:
         }
 
         # attempt to send message
-        try:
-            with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as client_socket:
-                client_socket.connect((HOST, SERVER_PORT))
-                # send binary 0 first to inform server to expect message in this format
-                client_socket.sendall(b"0") 
-                # send message
-                client_socket.sendall(json.dumps(message).encode())
-                print(f"Message sent to server: {message['content']}")
-                client_socket.close()
-        except Exception as e:
-            print(f"Message failed: {e}")
+        self.confirmed.clear()
+        sent = False
+        while not sent:
+            try:
+                with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as client_socket:
+                    client_socket.connect((HOST, SERVER_PORT))
+                    # send binary 0 first to inform server to expect message in this format
+                    client_socket.sendall(b"0") 
+                    # send message
+                    client_socket.sendall(json.dumps(message).encode())
+                    # wait and then confirm whether message was received
+                    if self.confirmed.wait(timeout=0.25):
+                        sent = True
+                        print(f"Message sent to server: {message['content']}")
+                        self.confirmed.clear()
+                    client_socket.close()
+            except Exception as e:
+                print(f"Message failed: {e}")
             
     def send_model(self) -> None:
         """
@@ -161,9 +168,6 @@ class Client:
                     # wait and then confirm whether message was received
                     if self.confirmed.wait(timeout=0.25):
                         sent = True
-                    else:
-                        #print("Confirmation timed out, resending...")
-                        pass
                     client_socket.close()
             except Exception as e:
                 print(f"Model failed to send: {e}")
